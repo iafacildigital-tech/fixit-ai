@@ -1,6 +1,3 @@
-// ===============================
-// 🚀 IMPORTACIONES
-// ===============================
 import express from "express";
 import cors from "cors";
 import multer from "multer";
@@ -15,56 +12,57 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 
 // ===============================
-// 🔧 CONFIGURACIÓN
+// CONFIG
 // ===============================
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ===============================
-// 🏠 ROOT → INTRO
+// ROOT → INTRO
 // ===============================
 app.get("/", (req, res) => {
 res.sendFile(process.cwd() + "/public/intro.html");
 });
 
 // ===============================
-// 📂 ARCHIVOS ESTÁTICOS
+// STATIC FILES
 // ===============================
 app.use(express.static("public"));
 
 // ===============================
-// 📂 SUBIDA DE ARCHIVOS
+// UPLOAD
 // ===============================
 const upload = multer({ dest: "uploads/" });
 
 // ===============================
-// 🤖 OPENAI
+// OPENAI
 // ===============================
 const openai = new OpenAI({
 apiKey: process.env.OPENAI_API_KEY
 });
 
 // ===============================
-// 🔐 LOGIN (CORREGIDO)
+// LOGIN (FIXED)
 // ===============================
 app.post("/login", (req, res) => {
 try {
 const { email, password } = req.body;
 
 ```
-let usuarios;
+let usuarios = [];
 
 try {
-  usuarios = JSON.parse(fs.readFileSync("usuarios.json", "utf-8"));
+  const data = fs.readFileSync("usuarios.json", "utf-8");
+  usuarios = JSON.parse(data);
 } catch (error) {
-  console.error("❌ ERROR leyendo usuarios.json:", error);
+  console.error("❌ Error leyendo usuarios.json:", error);
   return res.status(500).json({ error: "Error leyendo usuarios" });
 }
 
-const usuario = usuarios.find(
-  (u) => u.email === email && u.password === password
-);
+const usuario = usuarios.find((u) => {
+  return u.email === email && u.password === password;
+});
 
 if (usuario) {
   return res.json({
@@ -81,13 +79,13 @@ return res.status(401).json({
 ```
 
 } catch (error) {
-console.error("❌ ERROR GENERAL LOGIN:", error);
+console.error("❌ Error en login:", error);
 res.status(500).json({ error: "Error en servidor" });
 }
 });
 
 // ===============================
-// 🧠 ANALIZAR PROBLEMA (IA)
+// IA
 // ===============================
 app.post("/analizar", upload.single("imagen"), async (req, res) => {
 try {
@@ -137,7 +135,7 @@ if (!resultado) {
   };
 }
 
-// 💾 HISTORIAL SEGURO
+// HISTORIAL
 let historial = [];
 
 try {
@@ -158,13 +156,13 @@ res.json(resultado);
 ```
 
 } catch (error) {
-console.error("❌ ERROR IA:", error);
+console.error("❌ Error IA:", error);
 res.status(500).json({ error: "Error en IA" });
 }
 });
 
 // ===============================
-// 📊 HISTORIAL
+// HISTORIAL
 // ===============================
 app.get("/historial", (req, res) => {
 try {
@@ -185,13 +183,13 @@ res.json(filtrado);
 ```
 
 } catch (error) {
-console.error("❌ ERROR HISTORIAL:", error);
+console.error("❌ Error historial:", error);
 res.json([]);
 }
 });
 
 // ===============================
-// 📧 ESCALAR
+// ESCALAR
 // ===============================
 app.post("/escalar", async (req, res) => {
 try {
@@ -218,14 +216,14 @@ res.json({ success: true });
 ```
 
 } catch (error) {
-console.error("❌ ERROR CORREO:", error);
+console.error("❌ Error correo:", error);
 res.status(500).json({ error: "Error enviando correo" });
 }
 });
 
 // ===============================
-// 🔥 SERVIDOR
+// SERVER
 // ===============================
 app.listen(PORT, () => {
-console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
+console.log("🔥 Servidor corriendo en puerto " + PORT);
 });
