@@ -80,6 +80,7 @@
       if (data.success) {
         localStorage.setItem("usuario", email);
         localStorage.setItem("empresa", data.empresa);
+        localStorage.setItem("rol", data.rol);
 
         window.location.href = "/index.html";
       } else {

@@ -1,7 +1,15 @@
+
 [
   {
     "empresa": "demo",
-    "email": "test",
-    "password": "123"
+    "email": "andres@fixit.com",
+    "password": "123",
+    "rol": "admin"
+  },
+  {
+    "empresa": "demo",
+    "email": "user@fixit.com",
+    "password": "123",
+    "rol": "user"
   }
 ]

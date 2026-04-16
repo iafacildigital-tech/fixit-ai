@@ -53,6 +53,7 @@ app.post("/login", (req, res) => {
       return res.json({
         success: true,
         empresa: usuario.empresa
+        rol: usuario.rol
       });
     }
 
