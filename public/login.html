@@ -6,26 +6,22 @@
 
   <style>
     body {
-      background: #050b1c;
+      background: #020617;
+      color: white;
+      font-family: Arial;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      font-family: Arial;
     }
 
-    .card {
-      background: #0c162c;
+    .box {
+      background: #0f172a;
       padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #00ffc3;
-      width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #00f0ff;
       text-align: center;
-    }
-
-    h2 {
-      color: white;
-      margin-bottom: 20px;
+      width: 300px;
     }
 
     input {
@@ -39,22 +35,17 @@
     button {
       width: 100%;
       padding: 10px;
-      background: #00ffc3;
+      background: #00f0ff;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-weight: bold;
-    }
-
-    button:hover {
-      background: #00cfa3;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="card">
+  <div class="box">
     <h2>🔐 Login FixIT AI</h2>
 
     <input id="email" placeholder="Correo">
@@ -65,39 +56,26 @@
 
   <script>
     async function login() {
-
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
-      if (!email || !password) {
-        alert("Completa los campos");
-        return;
-      }
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
 
-      try {
-        const res = await fetch("/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ email, password })
-        });
+      const data = await res.json();
 
-        const data = await res.json();
+      if (data.success) {
+        localStorage.setItem("usuario", email);
+        localStorage.setItem("empresa", data.empresa);
 
-        if (data.success) {
-          // Guardar empresa
-          localStorage.setItem("empresa", data.empresa);
-
-          // Redirigir
-          window.location.href = "index.html";
-        } else {
-          alert("❌ Usuario o contraseña incorrectos");
-        }
-
-      } catch (error) {
-        console.error("Error:", error);
-        alert("Error conectando con el servidor");
+        window.location.href = "/index.html";
+      } else {
+        alert("❌ Credenciales incorrectas");
       }
     }
   </script>
