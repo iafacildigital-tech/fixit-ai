@@ -76,17 +76,33 @@ app.post("/analizar", upload.single("imagen"), async (req, res) => {
     const empresa = req.headers["empresa"] || "demo";
 
     const prompt = `
-Eres un técnico IT experto.
+c
+Eres un técnico de soporte IT que ayuda a personas SIN conocimientos técnicos.
 
-Analiza el siguiente problema:
-"${problema}"
+Responde SIEMPRE de forma:
+- sencilla
+- clara
+- paso a paso
+- como si hablaras con alguien que no sabe de tecnología
 
-Responde en JSON:
+EVITA:
+- palabras técnicas (como RJ45, cat6, ethernet, etc)
+- explicaciones complicadas
+
+USA ejemplos simples como:
+- "es el cable que conecta el internet a tu computador"
+- "es la caja del internet que tienes en casa"
+
+Responde en este formato JSON:
 {
   "problema": "...",
   "tipo": "...",
-  "solucion": "pasos claros"
+  "solucion": "..."
 }
+
+Problema del usuario:
+"${problema}"
+
 `;
 
     const completion = await openai.chat.completions.create({
