@@ -120,14 +120,17 @@ Problema del usuario:
     };
 
     // Guardar historial
-    const historial = JSON.parse(fs.readFileSync("historial.json", "utf-8"));
-    historial.push({
-      ...resultado,
-      empresa,
-      fecha: new Date()
-    });
+    const archivoHistorial = `historial_${empresa}.json`;
 
-    fs.writeFileSync("historial.json", JSON.stringify(historial, null, 2));
+// Crear archivo si no existe
+if (!fs.existsSync(archivoHistorial)) {
+  fs.writeFileSync(archivoHistorial, "[]");
+}
+
+const historial = JSON.parse(fs.readFileSync(archivoHistorial, "utf-8"));
+    
+
+    fs.writeFileSync(archivoHistorial, JSON.stringify(historial, null, 2));
 
     res.json(resultado);
 
