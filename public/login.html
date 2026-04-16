@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <title>Login FixIT AI</title>
 
+  <!-- 📱 RESPONSIVE -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
       background: #020617;
@@ -13,32 +16,37 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      padding: 10px;
     }
 
     .box {
+      width: 100%;
+      max-width: 400px;
       background: #0f172a;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px #00f0ff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px #00f0ff;
       text-align: center;
-      width: 300px;
     }
 
-    input {
+    input, button {
       width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
       border: none;
+      font-size: 16px;
     }
 
     button {
-      width: 100%;
-      padding: 10px;
       background: #00f0ff;
-      border: none;
-      border-radius: 5px;
       cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      h2 {
+        font-size: 18px;
+      }
     }
   </style>
 </head>

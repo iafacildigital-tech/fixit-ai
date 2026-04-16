@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <title>FixIT AI</title>
 
+  <!-- 📱 RESPONSIVE -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- 🔐 PROTEGER ACCESO -->
   <script>
-    // 🔐 PROTEGER ACCESO
     const usuario = localStorage.getItem("usuario");
 
     if (!usuario) {
@@ -20,33 +23,31 @@
       font-family: Arial;
       display: flex;
       justify-content: center;
+      padding: 10px;
     }
 
     .container {
-      width: 400px;
-      margin-top: 50px;
+      width: 100%;
+      max-width: 400px;
+      margin-top: 20px;
       background: #0f172a;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px #00f0ff;
+      border-radius: 15px;
+      box-shadow: 0 0 20px #00f0ff;
+    }
+
+    textarea, input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
     }
 
     textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 5px;
       background: black;
       color: white;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 5px;
-      border: none;
-      cursor: pointer;
     }
 
     .enviar {
@@ -57,19 +58,37 @@
       background: red;
     }
 
+    #chat {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
     .msg {
-      margin-top: 10px;
       padding: 10px;
-      border-radius: 5px;
+      border-radius: 10px;
+      margin: 5px 0;
+      font-size: 14px;
     }
 
     .user {
       background: #1e293b;
+      text-align: right;
     }
 
     .bot {
       background: #020617;
       border: 1px solid #00f0ff;
+    }
+
+    @media (max-width: 600px) {
+      h2 {
+        font-size: 18px;
+      }
+
+      .msg {
+        font-size: 13px;
+      }
     }
   </style>
 </head>
@@ -110,36 +129,45 @@
     }
 
     async function enviar() {
-      const problema = document.getElementById("problema").value;
-      const img = document.getElementById("imagen").files[0];
+      try {
+        const problema = document.getElementById("problema").value;
+        const img = document.getElementById("imagen").files[0];
 
-      if (!problema && !img) return;
+        if (!problema && !img) {
+          alert("Escribe algo o sube una imagen");
+          return;
+        }
 
-      agregarMensaje(problema || "📷 Imagen enviada", "user");
+        agregarMensaje(problema || "📷 Imagen enviada", "user");
 
-      const fd = new FormData();
-      fd.append("problema", problema);
-      if (img) fd.append("imagen", img);
+        const fd = new FormData();
+        fd.append("problema", problema);
+        if (img) fd.append("imagen", img);
 
-      const empresa = localStorage.getItem("empresa") || "demo";
+        const empresa = localStorage.getItem("empresa") || "demo";
 
-      const res = await fetch("/analizar", {
-        method: "POST",
-        headers: {
-          "empresa": empresa
-        },
-        body: fd
-      });
+        const res = await fetch("/analizar", {
+          method: "POST",
+          headers: {
+            "empresa": empresa
+          },
+          body: fd
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      const mensaje = `
+        const mensaje = `
 🔍 Problema: ${data.problema}<br>
 🧠 Tipo: ${data.tipo}<br>
 🛠️ Solución:<br>${(data.solucion || "Sin solución disponible").toString().replace(/\n/g,"<br>")}
 `;
 
-      agregarMensaje(mensaje, "bot");
+        agregarMensaje(mensaje, "bot");
+
+      } catch (error) {
+        console.error(error);
+        alert("Error conectando con el servidor");
+      }
     }
   </script>
 
