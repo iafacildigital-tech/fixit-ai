@@ -22,7 +22,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ===============================
-// 📂 ARCHIVOS ESTÁTICOS
+// 🏠 ROOT → INTRO (PRIMERO 🔥)
+// ===============================
+app.get("/", (req, res) => {
+res.sendFile(process.cwd() + "/public/intro.html");
+});
+
+// ===============================
+// 📂 ARCHIVOS ESTÁTICOS (DESPUÉS)
 // ===============================
 app.use(express.static("public"));
 
@@ -36,13 +43,6 @@ const upload = multer({ dest: "uploads/" });
 // ===============================
 const openai = new OpenAI({
 apiKey: process.env.OPENAI_API_KEY
-});
-
-// ===============================
-// 🏠 ROOT → INTRO (CORREGIDO)
-// ===============================
-app.get("/", (req, res) => {
-res.sendFile(process.cwd() + "/public/intro.html");
 });
 
 // ===============================
@@ -63,7 +63,7 @@ if (usuario) {
   return res.json({
     success: true,
     empresa: usuario.empresa,
-    rol: usuario.rol // 👈 IMPORTANTE
+    rol: usuario.rol
   });
 }
 
@@ -100,7 +100,7 @@ Responde en JSON:
 {
 "problema": "explicación clara",
 "tipo": "tipo sencillo",
-"solucion": "pasos muy fáciles como para alguien sin conocimiento técnico"
+"solucion": "pasos muy fáciles"
 }
 `;
 
@@ -112,7 +112,6 @@ const completion = await openai.chat.completions.create({
 
 let respuesta = completion.choices[0].message.content;
 
-// Extraer JSON seguro
 const match = respuesta.match(/\{[\s\S]*\}/);
 
 let resultado;
@@ -127,13 +126,11 @@ if (!resultado) {
   resultado = {
     problema,
     tipo: "Desconocido",
-    solucion: "No se pudo procesar correctamente"
+    solucion: "No se pudo procesar"
   };
 }
 
-// ===============================
 // 💾 GUARDAR HISTORIAL
-// ===============================
 let historial = [];
 
 try {
@@ -160,7 +157,7 @@ res.status(500).json({ error: "Error en IA" });
 });
 
 // ===============================
-// 📊 OBTENER HISTORIAL
+// 📊 HISTORIAL
 // ===============================
 app.get("/historial", (req, res) => {
 try {
@@ -181,7 +178,7 @@ res.json([]);
 });
 
 // ===============================
-// 📧 ESCALAR CASO
+// 📧 ESCALAR
 // ===============================
 app.post("/escalar", async (req, res) => {
 try {
