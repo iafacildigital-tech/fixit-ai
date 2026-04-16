@@ -22,14 +22,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ===============================
-// 🏠 ROOT → INTRO (PRIMERO 🔥)
+// 🏠 ROOT → INTRO
 // ===============================
 app.get("/", (req, res) => {
 res.sendFile(process.cwd() + "/public/intro.html");
 });
 
 // ===============================
-// 📂 ARCHIVOS ESTÁTICOS (DESPUÉS)
+// 📂 ARCHIVOS ESTÁTICOS
 // ===============================
 app.use(express.static("public"));
 
@@ -46,14 +46,21 @@ apiKey: process.env.OPENAI_API_KEY
 });
 
 // ===============================
-// 🔐 LOGIN
+// 🔐 LOGIN (CORREGIDO)
 // ===============================
 app.post("/login", (req, res) => {
 try {
 const { email, password } = req.body;
 
 ```
-const usuarios = JSON.parse(fs.readFileSync("usuarios.json", "utf-8"));
+let usuarios;
+
+try {
+  usuarios = JSON.parse(fs.readFileSync("usuarios.json", "utf-8"));
+} catch (error) {
+  console.error("❌ ERROR leyendo usuarios.json:", error);
+  return res.status(500).json({ error: "Error leyendo usuarios" });
+}
 
 const usuario = usuarios.find(
   (u) => u.email === email && u.password === password
@@ -74,7 +81,7 @@ return res.status(401).json({
 ```
 
 } catch (error) {
-console.error("❌ Error en login:", error);
+console.error("❌ ERROR GENERAL LOGIN:", error);
 res.status(500).json({ error: "Error en servidor" });
 }
 });
@@ -100,7 +107,7 @@ Responde en JSON:
 {
 "problema": "explicación clara",
 "tipo": "tipo sencillo",
-"solucion": "pasos muy fáciles"
+"solucion": "pasos fáciles"
 }
 `;
 
@@ -130,7 +137,7 @@ if (!resultado) {
   };
 }
 
-// 💾 GUARDAR HISTORIAL
+// 💾 HISTORIAL SEGURO
 let historial = [];
 
 try {
@@ -151,7 +158,7 @@ res.json(resultado);
 ```
 
 } catch (error) {
-console.error("❌ Error IA:", error);
+console.error("❌ ERROR IA:", error);
 res.status(500).json({ error: "Error en IA" });
 }
 });
@@ -164,7 +171,13 @@ try {
 const empresa = req.headers["empresa"] || "demo";
 
 ```
-const historial = JSON.parse(fs.readFileSync("historial.json", "utf-8"));
+let historial = [];
+
+try {
+  historial = JSON.parse(fs.readFileSync("historial.json", "utf-8"));
+} catch {
+  historial = [];
+}
 
 const filtrado = historial.filter(h => h.empresa === empresa);
 
@@ -172,7 +185,7 @@ res.json(filtrado);
 ```
 
 } catch (error) {
-console.error("❌ Error historial:", error);
+console.error("❌ ERROR HISTORIAL:", error);
 res.json([]);
 }
 });
@@ -205,7 +218,7 @@ res.json({ success: true });
 ```
 
 } catch (error) {
-console.error("❌ Error correo:", error);
+console.error("❌ ERROR CORREO:", error);
 res.status(500).json({ error: "Error enviando correo" });
 }
 });
