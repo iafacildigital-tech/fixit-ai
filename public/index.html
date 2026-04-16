@@ -136,7 +136,7 @@
       const mensaje = `
 🔍 Problema: ${data.problema}<br>
 🧠 Tipo: ${data.tipo}<br>
-🛠️ Solución:<br>${data.solucion.replace(/\n/g,"<br>")}
+🛠️ Solución:<br>${(data.solucion || "Sin solución disponible").toString().replace(/\n/g,"<br>")}
 `;
 
       agregarMensaje(mensaje, "bot");
