@@ -1,69 +1,126 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Login FixIT AI</title>
+<meta charset="UTF-8">
+<title>Login FixIT AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- 📱 RESPONSIVE -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: 'Segoe UI', Arial;
+  background: radial-gradient(circle at top, #1e1b4b, #020617);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  color: white;
+}
 
-  <style>
-    body {
-      background: #020617;
-      color: white;
-      font-family: Arial;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      padding: 10px;
-    }
+/* 🔮 ESFERAS DECORATIVAS */
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(10px);
+}
 
-    .box {
-      width: 100%;
-      max-width: 400px;
-      background: #0f172a;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #00f0ff;
-      text-align: center;
-    }
+.circle1 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, #8b5cf6, transparent);
+  top: 50px;
+  left: 100px;
+}
 
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-    }
+.circle2 {
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, #6366f1, transparent);
+  bottom: 50px;
+  right: 100px;
+}
 
-    button {
-      background: #00f0ff;
-      cursor: pointer;
-    }
+/* 🤖 LOGO DIFUMINADO */
+.logo-bg {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 300px;
+  opacity: 0.15;
+  filter: blur(10px);
+}
 
-    @media (max-width: 600px) {
-      h2 {
-        font-size: 18px;
-      }
-    }
-  </style>
+/* 📦 CAJA LOGIN */
+.box {
+  backdrop-filter: blur(20px);
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 30px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(139,92,246,0.4);
+}
+
+/* TITULO */
+h2 {
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+}
+
+/* INPUTS */
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+}
+
+/* BOTÓN */
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 20px;
+  border: none;
+  background: linear-gradient(90deg, #8b5cf6, #6366f1);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
+
 </head>
 
 <body>
 
-  <div class="box">
-    <h2>🔐 Login FixIT AI</h2>
+<!-- 🔮 FONDO -->
 
-    <input id="email" placeholder="Correo">
-    <input id="password" type="password" placeholder="Contraseña">
+<div class="circle circle1"></div>
+<div class="circle circle2"></div>
 
-    <button onclick="login()">Entrar</button>
-  </div>
+<!-- 🤖 LOGO DIFUMINADO -->
 
- <script>
+<img src="Logo.png" class="logo-bg">
+
+<!-- 📦 LOGIN -->
+
+<div class="box">
+  <h2>LOGIN</h2>
+
+  <input id="email" placeholder="Correo">
+  <input id="password" type="password" placeholder="Contraseña">
+
+<button onclick="login()">Entrar</button>
+
+</div>
+
+<script>
 async function login() {
+
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
@@ -80,13 +137,14 @@ async function login() {
   if (data.success) {
     localStorage.setItem("usuario", email);
     localStorage.setItem("empresa", data.empresa);
-    localStorage.setItem("rol", data.rol); // 🔥 ESTA ES LA CLAVE
+    localStorage.setItem("rol", data.rol);
 
-    window.location.href = "/index.html";
+    window.location.href = "/app.html";
   } else {
     alert("❌ Credenciales incorrectas");
   }
 }
 </script>
+
 </body>
 </html>
