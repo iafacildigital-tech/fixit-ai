@@ -1,13 +1,16 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>FixIT AI</title>
 
   <!-- 📱 RESPONSIVE -->
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- 🔐 PROTEGER ACCESO -->
+  <!-- 🔐 PROTEGER ACCESO (si no hay usuario, vuelve al login) -->
+
   <script>
     const usuario = localStorage.getItem("usuario");
 
@@ -52,10 +55,17 @@
 
     .enviar {
       background: #00f0ff;
+      font-weight: bold;
     }
 
     .logout {
       background: red;
+      font-weight: bold;
+    }
+
+    .dashboard {
+      background: #22c55e;
+      font-weight: bold;
     }
 
     #chat {
@@ -91,32 +101,68 @@
       }
     }
   </style>
+
 </head>
 
 <body>
 
   <div class="container">
 
-    <h2>🤖 FixIT AI</h2>
+```
+<h2>🤖 FixIT AI</h2>
 
-    <button class="logout" onclick="logout()">Cerrar sesión</button>
+<!-- 🔴 BOTÓN LOGOUT -->
+<button class="logout" onclick="logout()">Cerrar sesión</button>
 
-    <div id="chat"></div>
+<!-- 🟢 BOTÓN DASHBOARD (SOLO ADMIN) -->
+<button id="btnDashboard" class="dashboard" style="display:none;">
+  📊 Ver Dashboard
+</button>
 
-    <textarea id="problema" placeholder="Describe tu problema..."></textarea>
+<!-- 💬 CHAT -->
+<div id="chat"></div>
 
-    <input type="file" id="imagen">
+<!-- ✍️ INPUT PROBLEMA -->
+<textarea id="problema" placeholder="Describe tu problema..."></textarea>
 
-    <button class="enviar" onclick="enviar()">Enviar</button>
+<!-- 📷 SUBIR IMAGEN -->
+<input type="file" id="imagen">
+
+<!-- 🚀 ENVIAR -->
+<button class="enviar" onclick="enviar()">Enviar</button>
+```
 
   </div>
 
   <script>
+
+    // ===============================
+    // 🔐 CONTROL DE ROL (ADMIN)
+    // ===============================
+    const rol = localStorage.getItem("rol");
+
+    // Si es admin, mostrar botón dashboard
+    if (rol === "admin") {
+      const btn = document.getElementById("btnDashboard");
+
+      btn.style.display = "block";
+
+      btn.onclick = () => {
+        window.location.href = "/historial.html";
+      };
+    }
+
+    // ===============================
+    // 🔓 LOGOUT
+    // ===============================
     function logout() {
       localStorage.clear();
       window.location.href = "/login.html";
     }
 
+    // ===============================
+    // 💬 MOSTRAR MENSAJES EN CHAT
+    // ===============================
     function agregarMensaje(texto, tipo) {
       const chat = document.getElementById("chat");
 
@@ -128,24 +174,31 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
+    // ===============================
+    // 🚀 ENVIAR PROBLEMA AL BACKEND
+    // ===============================
     async function enviar() {
       try {
         const problema = document.getElementById("problema").value;
         const img = document.getElementById("imagen").files[0];
 
+        // Validación
         if (!problema && !img) {
           alert("Escribe algo o sube una imagen");
           return;
         }
 
+        // Mostrar mensaje del usuario
         agregarMensaje(problema || "📷 Imagen enviada", "user");
 
+        // Preparar datos
         const fd = new FormData();
         fd.append("problema", problema);
         if (img) fd.append("imagen", img);
 
         const empresa = localStorage.getItem("empresa") || "demo";
 
+        // Enviar al backend
         const res = await fetch("/analizar", {
           method: "POST",
           headers: {
@@ -156,19 +209,21 @@
 
         const data = await res.json();
 
+        // Mostrar respuesta IA
         const mensaje = `
-🔍 Problema: ${data.problema}<br>
-🧠 Tipo: ${data.tipo}<br>
+🔍 Problema: ${data.problema || "N/A"}<br>
+🧠 Tipo: ${data.tipo || "N/A"}<br>
 🛠️ Solución:<br>${(data.solucion || "Sin solución disponible").toString().replace(/\n/g,"<br>")}
 `;
 
         agregarMensaje(mensaje, "bot");
 
       } catch (error) {
-        console.error(error);
+        console.error("❌ Error:", error);
         alert("Error conectando con el servidor");
       }
     }
+
   </script>
 
 </body>
