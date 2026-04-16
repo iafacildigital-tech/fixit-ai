@@ -1,34 +1,171 @@
+// ===============================
+// 🚀 IMPORTACIONES
+// ===============================
 import express from "express";
+import cors from "cors";
+import multer from "multer";
+import fs from "fs";
 import dotenv from "dotenv";
-import supportRoutes from "./routes/support.js";
-import path from "path";
-import { fileURLToPath } from "url";
+import OpenAI from "openai";
+import { enviarCorreoSoporte } from "./emailService.js";
 
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 10000; // Render usa 10000
 
-// 🔧 Necesario para __dirname en ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// 📦 Middleware
+// ===============================
+// 🔧 CONFIGURACIÓN
+// ===============================
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 🌐 Servir archivos del frontend (carpeta public)
-app.use(express.static(path.join(__dirname, "public")));
+// Servir frontend
+app.use(express.static("public"));
 
-// 🔗 Rutas API
-app.use("/api/support", supportRoutes);
+// ===============================
+// 📂 SUBIDA DE ARCHIVOS
+// ===============================
+const upload = multer({ dest: "uploads/" });
 
-// 🏠 Ruta principal → cargar index.html
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// ===============================
+// 🤖 OPENAI
+// ===============================
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
 });
 
-// 🚀 Puerto dinámico (Render usa process.env.PORT)
-const PORT = process.env.PORT || 3000;
+// ===============================
+// 🔐 LOGIN (IMPORTANTE)
+// ===============================
+app.post("/login", (req, res) => {
+  try {
+    const { email, password } = req.body;
 
+    const usuarios = JSON.parse(fs.readFileSync("usuarios.json", "utf-8"));
+
+    const usuario = usuarios.find(
+      (u) => u.email === email && u.password === password
+    );
+
+    if (usuario) {
+      return res.json({
+        success: true,
+        empresa: usuario.empresa
+      });
+    }
+
+    return res.status(401).json({
+      success: false,
+      message: "Credenciales incorrectas"
+    });
+
+  } catch (error) {
+    console.error("❌ Error en login:", error);
+    res.status(500).json({ error: "Error en servidor" });
+  }
+});
+
+// ===============================
+// 🧠 ANALIZAR PROBLEMA (IA)
+// ===============================
+app.post("/analizar", upload.single("imagen"), async (req, res) => {
+  try {
+    const problema = req.body.problema || "Problema no especificado";
+    const empresa = req.headers["empresa"] || "demo";
+
+    const prompt = `
+Eres un técnico IT experto.
+
+Analiza el siguiente problema:
+"${problema}"
+
+Responde en JSON:
+{
+  "problema": "...",
+  "tipo": "...",
+  "solucion": "pasos claros"
+}
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    let respuesta = completion.choices[0].message.content;
+
+    const match = respuesta.match(/\{[\s\S]*\}/);
+    const resultado = match ? JSON.parse(match[0]) : {
+      problema,
+      tipo: "Desconocido",
+      solucion: "No se pudo procesar"
+    };
+
+    // Guardar historial
+    const historial = JSON.parse(fs.readFileSync("historial.json", "utf-8"));
+    historial.push({
+      ...resultado,
+      empresa,
+      fecha: new Date()
+    });
+
+    fs.writeFileSync("historial.json", JSON.stringify(historial, null, 2));
+
+    res.json(resultado);
+
+  } catch (error) {
+    console.error("❌ Error IA:", error);
+    res.status(500).json({ error: "Error en IA" });
+  }
+});
+
+// ===============================
+// 📧 ESCALAR
+// ===============================
+app.post("/escalar", async (req, res) => {
+  try {
+    const empresa = req.headers["empresa"] || "demo";
+
+    const mensaje = `
+🚨 NUEVO CASO ESCALADO
+
+Empresa: ${empresa}
+Problema: ${req.body.problema}
+Tipo: ${req.body.tipo}
+
+Solución:
+${req.body.solucion}
+`;
+
+    await enviarCorreoSoporte("Nuevo caso escalado", mensaje);
+
+    res.json({ success: true });
+
+  } catch (error) {
+    console.error("❌ Error correo:", error);
+    res.status(500).json({ error: "Error enviando correo" });
+  }
+});
+
+// ===============================
+// 🟢 RUTA TEST
+// ===============================
+app.get("/login", (req, res) => {
+  res.send("✅ Ruta login activa");
+});
+
+// ===============================
+// 🟢 ROOT
+// ===============================
+app.get("/", (req, res) => {
+  res.send("🚀 FixIT AI funcionando correctamente");
+});
+
+// ===============================
+// 🔥 SERVIDOR
+// ===============================
 app.listen(PORT, () => {
   console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
 });
