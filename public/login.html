@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login FixIT AI</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #020617;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: #111827;
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+      box-shadow: 0 0 15px #00f5d4;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #00f5d4;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <h2>🔐 Login FixIT AI</h2>
+
+  <input id="email" placeholder="Correo">
+  <input id="password" type="password" placeholder="Contraseña">
+
+  <button onclick="login()">Entrar</button>
+
+</div>
+
+<script>
+// ===============================
+// 🔐 FUNCIÓN LOGIN
+// ===============================
+async function login() {
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (data.ok) {
+    // Guardar empresa en sesión
+    localStorage.setItem("empresa", data.empresa);
+
+    // Ir a la app
+    window.location.href = "/index.html";
+  } else {
+    alert("❌ Credenciales incorrectas");
+  }
+}
+</script>
+
+</body>
+</html>

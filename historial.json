@@ -1,0 +1,60 @@
+[
+  {
+    "problema": "internet",
+    "solucion": "Verifica el proveedor de internet",
+    "fecha": "2026-04-07T21:41:39.887Z"
+  },
+  {
+    "problema": "internet",
+    "solucion": "Reinicia el router",
+    "fecha": "2026-04-07T21:42:39.777Z"
+  },
+  {
+    "problema": "internet",
+    "solucion": "Verifica el proveedor de internet",
+    "fecha": "2026-04-07T21:51:58.694Z"
+  },
+  {
+    "problema": "internet",
+    "solucion": "Reinicia el router",
+    "fecha": "2026-04-07T22:13:31.504Z"
+  },
+  {
+    "problema": "si",
+    "solucion": "Verifica el proveedor de internet",
+    "fecha": "2026-04-08T21:31:44.469Z"
+  },
+  {
+    "problema": "No hay conexión a Internet en el dispositivo.",
+    "tipo": "Conectividad",
+    "solucion": "Verificar que el cable de red esté correctamente conectado o que el Wi-Fi esté activado y conectado a una red. Reiniciar el router/modem y el dispositivo. Comprobar que no haya problemas en el proveedor de Internet.",
+    "escalamiento": false,
+    "empresa": "demo",
+    "fecha": "2026-04-15T20:57:58.578Z"
+  },
+  {
+    "problema": "El dispositivo está conectado a la red (link activo), pero no se tiene acceso a Internet.",
+    "tipo": "Conectividad de red",
+    "solucion": "1. Verificar que el router o módem tiene acceso a Internet.\n2. Reiniciar el router y el dispositivo.\n3. Comprobar la configuración de IP, puerta de enlace y DNS en el dispositivo.\n4. Ejecutar un ping a una dirección externa (por ejemplo, 8.8.8.8) para evaluar la conexión.\n5. Verificar si otros dispositivos en la misma red tienen acceso a Internet.\n6. Contactar al proveedor de Internet si el problema persiste.",
+    "escalamiento": true,
+    "empresa": "demo",
+    "fecha": "2026-04-15T20:58:46.546Z"
+  },
+  {
+    "problema": "La impresora no imprime documentos.",
+    "tipo": "Hardware/Software",
+    "solucion": "Verificar que la impresora esté encendida y conectada correctamente. Comprobar que tenga papel y tinta o tóner suficiente. Revisar que la impresora esté seleccionada como predeterminada en el sistema operativo. Reiniciar la impresora y el equipo. Desinstalar y reinstalar los controladores de la impresora. Verificar la cola de impresión y eliminar trabajos atascados.",
+    "escalamiento": false,
+    "empresa": "demo",
+    "fecha": "2026-04-15T21:05:36.860Z"
+  },
+  {
+    "problema": "La impresora no imprime documentos.",
+    "tipo": "Hardware/Software",
+    "solucion": "Verificar que la impresora esté encendida y conectada correctamente. Comprobar que tenga papel y tinta o tóner suficiente. Revisar que la impresora esté seleccionada como predeterminada en el sistema operativo. Reiniciar la impresora y el equipo. Desinstalar y reinstalar los controladores de la impresora. Verificar la cola de impresión y eliminar trabajos atascados.",
+    "escalamiento": false,
+    "escalado": true,
+    "empresa": "demo",
+    "fecha": "2026-04-15T21:05:39.533Z"
+  }
+]

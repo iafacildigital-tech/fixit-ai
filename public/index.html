@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>FixIT AI</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #020617, #000000);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: white;
+}
+
+.app {
+  width: 520px;
+  height: 780px;
+  background: rgba(10, 15, 25, 0.9);
+  border-radius: 30px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.header {
+  text-align: center;
+  padding: 10px;
+}
+
+.logo {
+  width: 220px;
+}
+
+.chat {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msg {
+  padding: 14px;
+  border-radius: 18px;
+  max-width: 75%;
+  font-size: 14px;
+}
+
+.user {
+  background: #2563eb;
+  align-self: flex-end;
+}
+
+.bot {
+  background: rgba(255,255,255,0.05);
+}
+
+.input-area {
+  padding: 15px;
+}
+
+textarea {
+  width: 100%;
+  border-radius: 14px;
+  padding: 10px;
+  background: black;
+  color: white;
+}
+
+button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #00f5d4;
+  cursor: pointer;
+}
+
+.logout {
+  background: red;
+  margin-bottom: 5px;
+}
+
+.loader {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #111;
+  border-top: 3px solid #00f5d4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+</head>
+
+<body>
+
+<script>
+// ===============================
+// 🔐 PROTEGER ACCESO
+// ===============================
+const empresa = localStorage.getItem("empresa");
+
+if (!empresa) {
+  window.location.href = "/login.html";
+}
+</script>
+
+<div class="app">
+
+  <div class="header">
+    <img src="Logo.png" class="logo">
+    <button class="logout" onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <div id="chat" class="chat"></div>
+
+  <div class="input-area">
+    <textarea id="problema" placeholder="Describe tu problema..."></textarea>
+    <input type="file" id="imagen">
+    <button onclick="enviar()">Enviar</button>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+
+<script>
+// ===============================
+// 🔓 LOGOUT
+// ===============================
+function logout() {
+  localStorage.removeItem("empresa");
+  window.location.href = "/login.html";
+}
+</script>
+
+</body>
+</html>

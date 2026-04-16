@@ -1,0 +1,39 @@
+{
+  "problemas": [
+    {
+      "nombre": "sin internet",
+      "flujo": [
+        {
+          "pregunta": "¿El cable de red está conectado?",
+          "si": "¿Hay luces en el router?",
+          "no": "Conecta el cable de red"
+        },
+        {
+          "pregunta": "¿Hay luces en el router?",
+          "si": "Reinicia el router",
+          "no": "Verifica el proveedor de internet"
+        }
+      ]
+    },
+    {
+      "nombre": "pc lenta",
+      "flujo": [
+        {
+          "pregunta": "¿Tienes muchos programas abiertos?",
+          "si": "Cierra programas innecesarios",
+          "no": "Revisa el uso de CPU en el administrador de tareas"
+        }
+      ]
+    },
+    {
+      "nombre": "no imprime",
+      "flujo": [
+        {
+          "pregunta": "¿La impresora está encendida?",
+          "si": "Revisa la cola de impresión",
+          "no": "Enciende la impresora"
+        }
+      ]
+    }
+  ]
+}

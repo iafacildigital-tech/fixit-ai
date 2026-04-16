@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>FixIT AI Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    /* CONTENEDOR PRINCIPAL */
+    .container {
+      width: 90%;
+      margin: auto;
+    }
+
+    /* CARDS */
+    .cards {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 10px;
+      width: 250px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+    }
+
+    /* GRÁFICA */
+    #grafica-container {
+      width: 600px;
+      height: 300px;
+      margin: 20px auto;
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    /* TABLA */
+    table {
+      width: 100%;
+      margin-top: 30px;
+      border-collapse: collapse;
+      background: #1e293b;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #333;
+    }
+
+    th {
+      background: #0ea5e9;
+    }
+
+    tr:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>📊 FixIT AI Dashboard</h1>
+
+<div class="container">
+
+  <!-- CARDS -->
+  <div class="cards">
+    <div class="card">
+      <h3>📌 Total Tickets</h3>
+      <p id="total">0</p>
+    </div>
+
+    <div class="card">
+      <h3>🔥 Problema Top</h3>
+      <p id="top">N/A</p>
+    </div>
+  </div>
+
+  <!-- GRÁFICA -->
+  <div id="grafica-container">
+    <canvas id="grafica"></canvas>
+  </div>
+
+  <!-- TABLA -->
+  <table>
+    <thead>
+      <tr>
+        <th>Problema</th>
+        <th>Solución</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+    <tbody id="tabla"></tbody>
+  </table>
+
+</div>
+
+<script>
+
+let chart = null;
+
+async function cargarHistorial() {
+
+  const res = await fetch("/historial");
+  const data = await res.json();
+
+  const tabla = document.getElementById("tabla");
+
+  tabla.innerHTML = "";
+
+  let contador = {};
+
+  data.forEach(item => {
+
+    contador[item.problema] = (contador[item.problema] || 0) + 1;
+
+    tabla.innerHTML += `
+      <tr>
+        <td>${item.problema}</td>
+        <td>${item.solucion}</td>
+        <td>${
+          item.fecha ? new Date(item.fecha).toLocaleString() : "Sin fecha"
+        }</td>
+      </tr>
+    `;
+  });
+
+  // ===== STATS =====
+
+  let total = data.length;
+  let top = "N/A";
+
+  if (total > 0) {
+    top = Object.keys(contador).reduce((a, b) =>
+      contador[a] > contador[b] ? a : b
+    );
+  }
+
+  document.getElementById("total").innerText = total;
+  document.getElementById("top").innerText = top;
+
+  // ===== GRÁFICA =====
+
+  const labels = Object.keys(contador);
+  const valores = Object.values(contador);
+
+  const ctx = document.getElementById('grafica').getContext('2d');
+
+  if (chart) chart.destroy();
+
+  if (labels.length > 0) {
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Cantidad de problemas',
+          data: valores
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+  }
+}
+
+cargarHistorial();
+
+</script>
+
+</body>
+</html>
