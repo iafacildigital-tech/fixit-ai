@@ -21,7 +21,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir frontend
+// ===============================
+// 📂 ARCHIVOS ESTÁTICOS
+// ===============================
 app.use(express.static("public"));
 
 // ===============================
@@ -34,6 +36,13 @@ const upload = multer({ dest: "uploads/" });
 // ===============================
 const openai = new OpenAI({
 apiKey: process.env.OPENAI_API_KEY
+});
+
+// ===============================
+// 🏠 ROOT → INTRO (CORREGIDO)
+// ===============================
+app.get("/", (req, res) => {
+res.sendFile(process.cwd() + "/public/intro.html");
 });
 
 // ===============================
@@ -54,7 +63,7 @@ if (usuario) {
   return res.json({
     success: true,
     empresa: usuario.empresa,
-    rol: usuario.rol // 👈 IMPORTANTE PARA DASHBOARD
+    rol: usuario.rol // 👈 IMPORTANTE
   });
 }
 
@@ -160,7 +169,6 @@ const empresa = req.headers["empresa"] || "demo";
 ```
 const historial = JSON.parse(fs.readFileSync("historial.json", "utf-8"));
 
-// Filtrar por empresa
 const filtrado = historial.filter(h => h.empresa === empresa);
 
 res.json(filtrado);
@@ -173,7 +181,7 @@ res.json([]);
 });
 
 // ===============================
-// 📧 ESCALAR
+// 📧 ESCALAR CASO
 // ===============================
 app.post("/escalar", async (req, res) => {
 try {
@@ -203,13 +211,6 @@ res.json({ success: true });
 console.error("❌ Error correo:", error);
 res.status(500).json({ error: "Error enviando correo" });
 }
-});
-
-// ===============================
-// 🟢 ROOT → INTRO
-// ===============================
-app.get("/", (req, res) => {
-res.redirect("/intro.html");
 });
 
 // ===============================
