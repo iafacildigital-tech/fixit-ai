@@ -12,7 +12,7 @@ import { enviarCorreoSoporte } from "./emailService.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 10000; // Render usa 10000
+const PORT = process.env.PORT || 10000;
 
 // ===============================
 // 🔧 CONFIGURACIÓN
@@ -33,122 +33,156 @@ const upload = multer({ dest: "uploads/" });
 // 🤖 OPENAI
 // ===============================
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+apiKey: process.env.OPENAI_API_KEY
 });
 
 // ===============================
-// 🔐 LOGIN (IMPORTANTE)
+// 🔐 LOGIN
 // ===============================
 app.post("/login", (req, res) => {
-  try {
-    const { email, password } = req.body;
+try {
+const { email, password } = req.body;
 
-    const usuarios = JSON.parse(fs.readFileSync("usuarios.json", "utf-8"));
+```
+const usuarios = JSON.parse(fs.readFileSync("usuarios.json", "utf-8"));
 
-    const usuario = usuarios.find(
-      (u) => u.email === email && u.password === password
-    );
+const usuario = usuarios.find(
+  (u) => u.email === email && u.password === password
+);
 
-    if (usuario) {
-      return res.json({
-  success: true,
-  empresa: usuario.empresa,
-  rol: usuario.rol
-      });
-    }
+if (usuario) {
+  return res.json({
+    success: true,
+    empresa: usuario.empresa,
+    rol: usuario.rol // 👈 IMPORTANTE PARA DASHBOARD
+  });
+}
 
-    return res.status(401).json({
-      success: false,
-      message: "Credenciales incorrectas"
-    });
+return res.status(401).json({
+  success: false,
+  message: "Credenciales incorrectas"
+});
+```
 
-  } catch (error) {
-    console.error("❌ Error en login:", error);
-    res.status(500).json({ error: "Error en servidor" });
-  }
+} catch (error) {
+console.error("❌ Error en login:", error);
+res.status(500).json({ error: "Error en servidor" });
+}
 });
 
 // ===============================
 // 🧠 ANALIZAR PROBLEMA (IA)
 // ===============================
 app.post("/analizar", upload.single("imagen"), async (req, res) => {
-  try {
-    const problema = req.body.problema || "Problema no especificado";
-    const empresa = req.headers["empresa"] || "demo";
+try {
+const problema = req.body.problema || "Problema no especificado";
+const empresa = req.headers["empresa"] || "demo";
 
-    const prompt = `
-c
-Eres un técnico de soporte IT que ayuda a personas SIN conocimientos técnicos.
+```
+const prompt = `
+```
 
-Responde SIEMPRE de forma:
-- sencilla
-- clara
-- paso a paso
-- como si hablaras con alguien que no sabe de tecnología
+Eres un técnico IT experto pero explicas TODO de forma MUY SIMPLE.
 
-EVITA:
-- palabras técnicas (como RJ45, cat6, ethernet, etc)
-- explicaciones complicadas
-
-USA ejemplos simples como:
-- "es el cable que conecta el internet a tu computador"
-- "es la caja del internet que tienes en casa"
-
-Responde en este formato JSON:
-{
-  "problema": "...",
-  "tipo": "...",
-  "solucion": "..."
-}
-
-Problema del usuario:
+Usuario dice:
 "${problema}"
 
+Responde en JSON:
+{
+"problema": "explicación clara",
+"tipo": "tipo sencillo",
+"solucion": "pasos muy fáciles como para alguien sin conocimiento técnico"
+}
 `;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-    });
+```
+const completion = await openai.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: prompt }]
+});
 
-    let respuesta = completion.choices[0].message.content;
+let respuesta = completion.choices[0].message.content;
 
-    const match = respuesta.match(/\{[\s\S]*\}/);
-    const resultado = match ? JSON.parse(match[0]) : {
-      problema,
-      tipo: "Desconocido",
-      solucion: "No se pudo procesar"
-    };
+// Extraer JSON seguro
+const match = respuesta.match(/\{[\s\S]*\}/);
 
-    // Guardar historial
-    const archivoHistorial = `historial_${empresa}.json`;
+let resultado;
 
-// Crear archivo si no existe
-if (!fs.existsSync(archivoHistorial)) {
-  fs.writeFileSync(archivoHistorial, "[]");
+try {
+  resultado = match ? JSON.parse(match[0]) : null;
+} catch {
+  resultado = null;
 }
 
-const historial = JSON.parse(fs.readFileSync(archivoHistorial, "utf-8"));
-    
+if (!resultado) {
+  resultado = {
+    problema,
+    tipo: "Desconocido",
+    solucion: "No se pudo procesar correctamente"
+  };
+}
 
-    fs.writeFileSync(archivoHistorial, JSON.stringify(historial, null, 2));
+// ===============================
+// 💾 GUARDAR HISTORIAL
+// ===============================
+let historial = [];
 
-    res.json(resultado);
+try {
+  historial = JSON.parse(fs.readFileSync("historial.json", "utf-8"));
+} catch {
+  historial = [];
+}
 
-  } catch (error) {
-    console.error("❌ Error IA:", error);
-    res.status(500).json({ error: "Error en IA" });
-  }
+historial.push({
+  ...resultado,
+  empresa,
+  fecha: new Date()
+});
+
+fs.writeFileSync("historial.json", JSON.stringify(historial, null, 2));
+
+res.json(resultado);
+```
+
+} catch (error) {
+console.error("❌ Error IA:", error);
+res.status(500).json({ error: "Error en IA" });
+}
+});
+
+// ===============================
+// 📊 OBTENER HISTORIAL
+// ===============================
+app.get("/historial", (req, res) => {
+try {
+const empresa = req.headers["empresa"] || "demo";
+
+```
+const historial = JSON.parse(fs.readFileSync("historial.json", "utf-8"));
+
+// Filtrar por empresa
+const filtrado = historial.filter(h => h.empresa === empresa);
+
+res.json(filtrado);
+```
+
+} catch (error) {
+console.error("❌ Error historial:", error);
+res.json([]);
+}
 });
 
 // ===============================
 // 📧 ESCALAR
 // ===============================
 app.post("/escalar", async (req, res) => {
-  try {
-    const empresa = req.headers["empresa"] || "demo";
+try {
+const empresa = req.headers["empresa"] || "demo";
 
-    const mensaje = `
+```
+const mensaje = `
+```
+
 🚨 NUEVO CASO ESCALADO
 
 Empresa: ${empresa}
@@ -159,33 +193,28 @@ Solución:
 ${req.body.solucion}
 `;
 
-    await enviarCorreoSoporte("Nuevo caso escalado", mensaje);
+```
+await enviarCorreoSoporte("Nuevo caso escalado", mensaje);
 
-    res.json({ success: true });
+res.json({ success: true });
+```
 
-  } catch (error) {
-    console.error("❌ Error correo:", error);
-    res.status(500).json({ error: "Error enviando correo" });
-  }
+} catch (error) {
+console.error("❌ Error correo:", error);
+res.status(500).json({ error: "Error enviando correo" });
+}
 });
 
 // ===============================
-// 🟢 RUTA TEST
-// ===============================
-app.get("/login", (req, res) => {
-  res.send("✅ Ruta login activa");
-});
-
-// ===============================
-// 🟢 ROOT
+// 🟢 ROOT → INTRO
 // ===============================
 app.get("/", (req, res) => {
-  res.send("🚀 FixIT AI funcionando correctamente");
+res.redirect("/intro.html");
 });
 
 // ===============================
 // 🔥 SERVIDOR
 // ===============================
 app.listen(PORT, () => {
-  console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
+console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
 });
