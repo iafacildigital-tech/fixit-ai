@@ -62,32 +62,31 @@
     <button onclick="login()">Entrar</button>
   </div>
 
-  <script>
-    async function login() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+ <script>
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-      const res = await fetch("/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email, password })
-      });
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, password })
+  });
 
-      const data = await res.json();
+  const data = await res.json();
 
-      if (data.success) {
-        localStorage.setItem("usuario", email);
-        localStorage.setItem("empresa", data.empresa);
-        localStorage.setItem("rol", data.rol);
+  if (data.success) {
+    localStorage.setItem("usuario", email);
+    localStorage.setItem("empresa", data.empresa);
+    localStorage.setItem("rol", data.rol); // 🔥 ESTA ES LA CLAVE
 
-        window.location.href = "/index.html";
-      } else {
-        alert("❌ Credenciales incorrectas");
-      }
-    }
-  </script>
-
+    window.location.href = "/index.html";
+  } else {
+    alert("❌ Credenciales incorrectas");
+  }
+}
+</script>
 </body>
 </html>
