@@ -51,9 +51,9 @@ app.post("/login", (req, res) => {
 
     if (usuario) {
       return res.json({
-        success: true,
-        empresa: usuario.empresa
-        rol: usuario.rol
+  success: true,
+  empresa: usuario.empresa,
+  rol: usuario.rol
       });
     }
 
