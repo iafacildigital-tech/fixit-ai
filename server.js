@@ -4,6 +4,8 @@ import multer from "multer";
 import fs from "fs";
 import dotenv from "dotenv";
 import OpenAI from "openai";
+import jwt from "jsonwebtoken";
+import { verificarToken } from "./middleware/authMiddleware.js";
 import { enviarCorreoSoporte } from "./emailService.js";
 
 dotenv.config();
@@ -43,52 +45,51 @@ const openai = new OpenAI({
 });
 
 // ===============================
-// LOGIN (ARREGLADO)
+// JWT SECRET
+// ===============================
+const SECRET = "fixit_secret_123";
+
+// ===============================
+// LOGIN
 // ===============================
 app.post("/login", (req, res) => {
-  try {
-    const { email, password } = req.body;
+  const { usuario, password } = req.body;
 
-    let usuarios = [];
-
-    try {
-      const data = fs.readFileSync("usuarios.json", "utf-8");
-      usuarios = JSON.parse(data);
-    } catch (error) {
-      console.error("❌ Error leyendo usuarios.json:", error);
-      return res.status(500).json({ error: "Error leyendo usuarios" });
-    }
-
-    const usuario = usuarios.find(
-      (u) => u.email === email && u.password === password
+  if (usuario === "admin" && password === "1234") {
+    const token = jwt.sign(
+      {
+        user: usuario,
+        empresaId: 1
+      },
+      SECRET,
+      { expiresIn: "8h" }
     );
 
-    if (usuario) {
-      return res.json({
-        success: true,
-        empresa: usuario.empresa,
-        rol: usuario.rol
-      });
-    }
-
-    return res.status(401).json({
-      success: false,
-      message: "Credenciales incorrectas"
-    });
-
-  } catch (error) {
-    console.error("❌ Error en login:", error);
-    res.status(500).json({ error: "Error en servidor" });
+    return res.json({ token });
   }
+
+  return res.status(401).json({
+    error: "Credenciales incorrectas"
+  });
 });
 
 // ===============================
-// IA (ARREGLADO)
+// RUTA PROTEGIDA TEST
 // ===============================
-app.post("/analizar", upload.single("imagen"), async (req, res) => {
+app.get("/dashboard", verificarToken, (req, res) => {
+  res.json({
+    message: "Acceso autorizado",
+    user: req.user
+  });
+});
+
+// ===============================
+// IA (PROTEGIDA)
+// ===============================
+app.post("/analizar", verificarToken, upload.single("imagen"), async (req, res) => {
   try {
     const problema = req.body.problema || "Problema no especificado";
-    const empresa = req.headers["empresa"] || "demo";
+    const empresa = req.user.empresaId || "demo";
 
     const prompt = `
 Eres un técnico IT experto pero explicas TODO de forma MUY SIMPLE.
@@ -155,11 +156,11 @@ Responde en JSON:
 });
 
 // ===============================
-// HISTORIAL
+// HISTORIAL (PROTEGIDO)
 // ===============================
-app.get("/historial", (req, res) => {
+app.get("/historial", verificarToken, (req, res) => {
   try {
-    const empresa = req.headers["empresa"] || "demo";
+    const empresa = req.user.empresaId || "demo";
 
     let historial = [];
 
@@ -180,11 +181,11 @@ app.get("/historial", (req, res) => {
 });
 
 // ===============================
-// ESCALAR
+// ESCALAR (PROTEGIDO)
 // ===============================
-app.post("/escalar", async (req, res) => {
+app.post("/escalar", verificarToken, async (req, res) => {
   try {
-    const empresa = req.headers["empresa"] || "demo";
+    const empresa = req.user.empresaId || "demo";
 
     const mensaje = `
 🚨 NUEVO CASO ESCALADO
