@@ -11,5 +11,12 @@
     "email": "user@fixit.com",
     "password": "123",
     "rol": "user"
+  },
+
+  {
+    "empresa": "demo",
+    "email": "andres@fixit.com",
+    "password": "123",
+    "rol": "admin"
   }
 ]

@@ -11,7 +11,7 @@ import { enviarCorreoSoporte } from "./emailService.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
 // ===============================
 // CONFIG
@@ -50,27 +50,44 @@ const openai = new OpenAI({
 const SECRET = "fixit_secret_123";
 
 // ===============================
-// LOGIN
+// LOGIN (CORREGIDO)
 // ===============================
 app.post("/login", (req, res) => {
-  const { usuario, password } = req.body;
+  const { email, password, empresa } = req.body;
 
-  if (usuario === "admin" && password === "1234") {
-    const token = jwt.sign(
-      {
-        user: usuario,
-        empresaId: 1
-      },
-      SECRET,
-      { expiresIn: "8h" }
-    );
+  let usuarios = [];
 
-    return res.json({ token });
+  try {
+    usuarios = JSON.parse(fs.readFileSync("usuarios.json", "utf-8"));
+  } catch (error) {
+    console.error("❌ Error leyendo usuarios:", error);
+    return res.status(500).json({ error: "Error interno" });
   }
 
-  return res.status(401).json({
-    error: "Credenciales incorrectas"
-  });
+  const user = usuarios.find(
+    u =>
+      u.email === email &&
+      u.password === password &&
+      u.empresa === empresa
+  );
+
+  if (!user) {
+    return res.status(401).json({
+      error: "Credenciales incorrectas"
+    });
+  }
+
+  const token = jwt.sign(
+    {
+      user: user.email,
+      empresaId: user.empresa,
+      rol: user.rol
+    },
+    SECRET,
+    { expiresIn: "8h" }
+  );
+
+  res.json({ token });
 });
 
 // ===============================
@@ -130,7 +147,9 @@ Responde en JSON:
       };
     }
 
+    // ===============================
     // HISTORIAL
+    // ===============================
     let historial = [];
 
     try {
