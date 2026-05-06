@@ -15,6 +15,12 @@ const PORT = process.env.PORT || 10000;
 const SECRET = process.env.JWT_SECRET || "fixit-secret";
 
 // ===============================
+// 📁 RUTAS SEGURAS PARA ARCHIVOS (FIX RENDER)
+// ===============================
+const usuariosPath = new URL("./usuarios.json", import.meta.url);
+const historialPath = new URL("./historial.json", import.meta.url);
+
+// ===============================
 // CONFIG
 // ===============================
 app.use(cors());
@@ -46,13 +52,13 @@ const openai = new OpenAI({
 });
 
 // ===============================
-// LOGIN (JWT)
+// LOGIN (JWT FIX)
 // ===============================
 app.post("/login", (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const usuarios = JSON.parse(fs.readFileSync("usuarios.json", "utf-8"));
+    const usuarios = JSON.parse(fs.readFileSync(usuariosPath, "utf-8"));
 
     const usuario = usuarios.find(
       (u) => u.email === email && u.password === password
@@ -137,7 +143,7 @@ Responde en JSON:
     let historial = [];
 
     try {
-      historial = JSON.parse(fs.readFileSync("historial.json", "utf-8"));
+      historial = JSON.parse(fs.readFileSync(historialPath, "utf-8"));
     } catch {
       historial = [];
     }
@@ -148,7 +154,7 @@ Responde en JSON:
       fecha: new Date()
     });
 
-    fs.writeFileSync("historial.json", JSON.stringify(historial, null, 2));
+    fs.writeFileSync(historialPath, JSON.stringify(historial, null, 2));
 
     res.json(resultado);
 
@@ -168,7 +174,7 @@ app.get("/historial", verificarToken, (req, res) => {
     let historial = [];
 
     try {
-      historial = JSON.parse(fs.readFileSync("historial.json", "utf-8"));
+      historial = JSON.parse(fs.readFileSync(historialPath, "utf-8"));
     } catch {
       historial = [];
     }
