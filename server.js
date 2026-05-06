@@ -4,12 +4,15 @@ import multer from "multer";
 import fs from "fs";
 import dotenv from "dotenv";
 import OpenAI from "openai";
+import jwt from "jsonwebtoken";
 import { enviarCorreoSoporte } from "./emailService.js";
+import { verificarToken } from "./middleware/auth.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+const SECRET = process.env.JWT_SECRET || "fixit-secret";
 
 // ===============================
 // CONFIG
@@ -43,37 +46,38 @@ const openai = new OpenAI({
 });
 
 // ===============================
-// LOGIN (ARREGLADO)
+// LOGIN (JWT)
 // ===============================
 app.post("/login", (req, res) => {
   try {
     const { email, password } = req.body;
 
-    let usuarios = [];
-
-    try {
-      const data = fs.readFileSync("usuarios.json", "utf-8");
-      usuarios = JSON.parse(data);
-    } catch (error) {
-      console.error("❌ Error leyendo usuarios.json:", error);
-      return res.status(500).json({ error: "Error leyendo usuarios" });
-    }
+    const usuarios = JSON.parse(fs.readFileSync("usuarios.json", "utf-8"));
 
     const usuario = usuarios.find(
       (u) => u.email === email && u.password === password
     );
 
-    if (usuario) {
-      return res.json({
-        success: true,
-        empresa: usuario.empresa,
-        rol: usuario.rol
+    if (!usuario) {
+      return res.status(401).json({
+        success: false,
+        message: "Credenciales incorrectas"
       });
     }
 
-    return res.status(401).json({
-      success: false,
-      message: "Credenciales incorrectas"
+    const token = jwt.sign(
+      {
+        email: usuario.email,
+        empresa: usuario.empresa,
+        rol: usuario.rol
+      },
+      SECRET,
+      { expiresIn: "8h" }
+    );
+
+    res.json({
+      success: true,
+      token
     });
 
   } catch (error) {
@@ -83,12 +87,12 @@ app.post("/login", (req, res) => {
 });
 
 // ===============================
-// IA (ARREGLADO)
+// IA
 // ===============================
-app.post("/analizar", upload.single("imagen"), async (req, res) => {
+app.post("/analizar", verificarToken, upload.single("imagen"), async (req, res) => {
   try {
     const problema = req.body.problema || "Problema no especificado";
-    const empresa = req.headers["empresa"] || "demo";
+    const empresa = req.user.empresa;
 
     const prompt = `
 Eres un técnico IT experto pero explicas TODO de forma MUY SIMPLE.
@@ -157,9 +161,9 @@ Responde en JSON:
 // ===============================
 // HISTORIAL
 // ===============================
-app.get("/historial", (req, res) => {
+app.get("/historial", verificarToken, (req, res) => {
   try {
-    const empresa = req.headers["empresa"] || "demo";
+    const empresa = req.user.empresa;
 
     let historial = [];
 
@@ -182,9 +186,9 @@ app.get("/historial", (req, res) => {
 // ===============================
 // ESCALAR
 // ===============================
-app.post("/escalar", async (req, res) => {
+app.post("/escalar", verificarToken, async (req, res) => {
   try {
-    const empresa = req.headers["empresa"] || "demo";
+    const empresa = req.user.empresa;
 
     const mensaje = `
 🚨 NUEVO CASO ESCALADO

@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>FixIT AI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- 🔐 PROTEGER LOGIN -->
-
+<!-- 🔐 PROTECCIÓN REAL CON JWT -->
 <script>
-  const usuario = localStorage.getItem("usuario");
-  if (!usuario) {
+  const token = localStorage.getItem("token");
+
+  // Si no hay token → fuera
+  if (!token) {
     window.location.href = "/login.html";
   }
 </script>
@@ -127,75 +127,83 @@ textarea {
 
 <div class="app">
 
-  <!-- BOTONES -->
-
+  <!-- 🔝 BOTONES -->
   <div class="top">
     <button class="btn logout" onclick="logout()">Salir</button>
     <button id="dash" class="btn dashboard" style="display:none;">Dashboard</button>
   </div>
 
-  <!-- IA -->
-
+  <!-- 🤖 IA -->
   <div>
     <div class="ai">AI</div>
     <div class="text">Ask anything to FixIT AI</div>
   </div>
 
-  <!-- INPUT -->
-
+  <!-- ✍️ INPUT -->
   <div>
     <textarea id="problema" placeholder="Your problem..."></textarea>
     <button class="send" onclick="enviar()">Enviar</button>
   </div>
 
-  <!-- RESPUESTA -->
-
+  <!-- 📄 RESPUESTA -->
   <div id="respuesta" class="resp"></div>
 
 </div>
 
 <script>
 
-// ADMIN
-const rol = localStorage.getItem("rol");
-
-if (rol === "admin") {
-  const d = document.getElementById("dash");
-  d.style.display = "block";
-  d.onclick = () => window.location.href = "/historial.html";
+// ===============================
+// 🔐 OBTENER TOKEN
+// ===============================
+function getToken() {
+  return localStorage.getItem("token");
 }
 
-// LOGOUT
+// ===============================
+// 👑 MOSTRAR DASHBOARD SI ES ADMIN
+// ===============================
+// ⚠️ Ahora no tienes rol en frontend
+// Esto lo haremos luego leyendo el token (fase 2)
+
+// ===============================
+// 🚪 LOGOUT
+// ===============================
 function logout() {
-  localStorage.clear();
+  localStorage.removeItem("token");
   window.location.href = "/login.html";
 }
 
-// IA
+// ===============================
+// 🤖 ENVIAR A IA (CORREGIDO CON JWT)
+// ===============================
 async function enviar() {
 
   const problema = document.getElementById("problema").value;
 
   if (!problema) return;
 
-  const fd = new FormData();
-  fd.append("problema", problema);
+  try {
 
-  const res = await fetch("/analizar", {
-    method: "POST",
-    headers: {
-      "empresa": localStorage.getItem("empresa")
-    },
-    body: fd
-  });
+    const res = await fetch("/analizar", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + getToken()
+      },
+      body: new URLSearchParams({ problema }) // compatible con multer
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  document.getElementById("respuesta").innerHTML = `
+    document.getElementById("respuesta").innerHTML = `
 🔍 ${data.problema}<br><br>
 🧠 ${data.tipo}<br><br>
 🛠️ ${data.solucion}
 `;
+
+  } catch (error) {
+    console.error("Error IA:", error);
+    alert("Error conectando con el servidor");
+  }
 }
 
 </script>

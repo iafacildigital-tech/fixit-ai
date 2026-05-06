@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -19,7 +18,7 @@ body {
   color: white;
 }
 
-/* 🔮 ESFERAS DECORATIVAS */
+/* 🔮 ESFERAS */
 .circle {
   position: absolute;
   border-radius: 50%;
@@ -42,7 +41,7 @@ body {
   right: 100px;
 }
 
-/* 🤖 LOGO DIFUMINADO */
+/* 🤖 LOGO */
 .logo-bg {
   position: absolute;
   top: -50px;
@@ -52,7 +51,7 @@ body {
   filter: blur(10px);
 }
 
-/* 📦 CAJA LOGIN */
+/* 📦 BOX */
 .box {
   backdrop-filter: blur(20px);
   background: rgba(255,255,255,0.05);
@@ -63,13 +62,11 @@ body {
   box-shadow: 0 0 40px rgba(139,92,246,0.4);
 }
 
-/* TITULO */
 h2 {
   margin-bottom: 20px;
   letter-spacing: 2px;
 }
 
-/* INPUTS */
 input {
   width: 100%;
   padding: 12px;
@@ -79,7 +76,6 @@ input {
   outline: none;
 }
 
-/* BOTÓN */
 button {
   width: 100%;
   padding: 12px;
@@ -97,16 +93,10 @@ button {
 
 <body>
 
-<!-- 🔮 FONDO -->
-
 <div class="circle circle1"></div>
 <div class="circle circle2"></div>
 
-<!-- 🤖 LOGO DIFUMINADO -->
-
 <img src="Logo.png" class="logo-bg">
-
-<!-- 📦 LOGIN -->
 
 <div class="box">
   <h2>LOGIN</h2>
@@ -114,8 +104,7 @@ button {
   <input id="email" placeholder="Correo">
   <input id="password" type="password" placeholder="Contraseña">
 
-<button onclick="login()">Entrar</button>
-
+  <button onclick="login()">Entrar</button>
 </div>
 
 <script>
@@ -124,24 +113,34 @@ async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const res = await fetch("/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ email, password })
-  });
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (data.success) {
-    localStorage.setItem("usuario", email);
-    localStorage.setItem("empresa", data.empresa);
-    localStorage.setItem("rol", data.rol);
+    if (data.success) {
 
-    window.location.href = "/app.html";
-  } else {
-    alert("❌ Credenciales incorrectas");
+      // 🔐 TOKEN (CLAVE)
+      localStorage.setItem("token", data.token);
+
+      // opcional
+      localStorage.setItem("usuario", email);
+
+      window.location.href = "/app.html";
+
+    } else {
+      alert("❌ Credenciales incorrectas");
+    }
+
+  } catch (error) {
+    console.error("Error login:", error);
+    alert("Error conectando con el servidor");
   }
 }
 </script>

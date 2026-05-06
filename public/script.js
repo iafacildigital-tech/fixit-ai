@@ -1,165 +1,186 @@
 // ===============================
-// 🚀 IMPORTACIONES
+// BASE URL (Render o local)
 // ===============================
-import express from "express";
-import cors from "cors";
-import multer from "multer";
-import fs from "fs";
-import dotenv from "dotenv";
-import OpenAI from "openai";
-import { enviarCorreoSoporte } from "./emailService.js";
-
-dotenv.config();
-
-const app = express();
-const PORT = process.env.PORT || 3000;
+const API = ""; // deja vacío si frontend y backend están juntos
 
 // ===============================
-// 🔧 CONFIGURACIÓN
+// LOGIN
 // ===============================
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-// Servir frontend
-app.use(express.static("public"));
-
-// ===============================
-// 📂 MULTER (subida de archivos)
-// ===============================
-const upload = multer({ dest: "uploads/" });
-
-// ===============================
-// 🤖 OPENAI
-// ===============================
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-// ===============================
-// 🔐 LOGIN
-// ===============================
-app.post("/login", (req, res) => {
   try {
-    const { email, password } = req.body;
+    const res = await fetch(API + "/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
 
-    const usuarios = JSON.parse(fs.readFileSync("usuarios.json"));
+    const data = await res.json();
 
-    const usuario = usuarios.find(
-      (u) => u.email === email && u.password === password
-    );
+    if (data.success) {
+      // 🔐 guardar token
+      localStorage.setItem("token", data.token);
 
-    if (usuario) {
-      return res.json({
-        success: true,
-        empresa: usuario.empresa
-      });
+      // 🚀 redirigir
+      window.location.href = "app.html";
+    } else {
+      alert(data.message || "Error en login");
     }
 
-    return res.status(401).json({
-      success: false,
-      message: "Credenciales incorrectas"
-    });
-
   } catch (error) {
-    console.error("Error en login:", error);
-    res.status(500).json({ error: "Error en servidor" });
+    console.error("Error login:", error);
+    alert("Error conectando con el servidor");
   }
-});
-
-// ===============================
-// 🧠 ANALIZAR PROBLEMA (IA)
-// ===============================
-app.post("/analizar", upload.single("imagen"), async (req, res) => {
-  try {
-    const problema = req.body.problema || "Problema no especificado";
-    const empresa = req.headers["empresa"] || "demo";
-
-    const prompt = `
-Eres un técnico IT experto.
-
-Analiza el siguiente problema:
-"${problema}"
-
-Responde en JSON con:
-{
-  "problema": "...",
-  "tipo": "...",
-  "solucion": "pasos claros"
 }
-`;
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
+// ===============================
+// OBTENER TOKEN
+// ===============================
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+// ===============================
+// VALIDAR SESIÓN
+// ===============================
+function checkAuth() {
+  const token = getToken();
+
+  if (!token) {
+    window.location.href = "login.html";
+  }
+}
+
+// ===============================
+// LOGOUT
+// ===============================
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+}
+
+// ===============================
+// ANALIZAR PROBLEMA (IA)
+// ===============================
+async function analizarProblema() {
+  const problema = document.getElementById("problema").value;
+
+  if (!problema) {
+    alert("Escribe un problema");
+    return;
+  }
+
+  try {
+    const res = await fetch(API + "/analizar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + getToken()
+      },
+      body: JSON.stringify({ problema })
     });
 
-    let respuesta = completion.choices[0].message.content;
+    const data = await res.json();
 
-    // Limpiar si viene con texto adicional
-    const jsonMatch = respuesta.match(/\{[\s\S]*\}/);
-    const resultado = jsonMatch ? JSON.parse(jsonMatch[0]) : {
-      problema,
-      tipo: "Desconocido",
-      solucion: "No se pudo procesar la respuesta"
-    };
+    document.getElementById("resultado").innerHTML = `
+      <h3>Problema:</h3>
+      <p>${data.problema}</p>
 
-    // Guardar historial
-    const historial = JSON.parse(fs.readFileSync("historial.json"));
-    historial.push({
-      ...resultado,
-      empresa,
-      fecha: new Date()
-    });
+      <h3>Tipo:</h3>
+      <p>${data.tipo}</p>
 
-    fs.writeFileSync("historial.json", JSON.stringify(historial, null, 2));
+      <h3>Solución:</h3>
+      <p>${data.solucion}</p>
+    `;
 
-    res.json(resultado);
+    // guardar último resultado para escalar
+    window.ultimoResultado = data;
 
   } catch (error) {
     console.error("Error IA:", error);
-    res.status(500).json({ error: "Error procesando IA" });
+    alert("Error al analizar");
   }
-});
+}
 
 // ===============================
-// 📧 ESCALAR A SOPORTE
+// CARGAR HISTORIAL
 // ===============================
-app.post("/escalar", async (req, res) => {
+async function cargarHistorial() {
   try {
-    const empresa = req.headers["empresa"] || "demo";
+    const res = await fetch(API + "/historial", {
+      headers: {
+        "Authorization": "Bearer " + getToken()
+      }
+    });
 
-    const mensaje = `
-🚨 NUEVO CASO ESCALADO
+    const data = await res.json();
 
-Empresa: ${empresa}
-Problema: ${req.body.problema}
-Tipo: ${req.body.tipo}
+    const contenedor = document.getElementById("historial");
 
-Solución intentada:
-${req.body.solucion}
-`;
+    contenedor.innerHTML = "";
 
-    await enviarCorreoSoporte("Nuevo caso escalado", mensaje);
+    data.reverse().forEach(item => {
+      const div = document.createElement("div");
 
-    res.json({ success: true });
+      div.innerHTML = `
+        <hr>
+        <p><strong>Problema:</strong> ${item.problema}</p>
+        <p><strong>Tipo:</strong> ${item.tipo}</p>
+        <p><strong>Solución:</strong> ${item.solucion}</p>
+        <small>${new Date(item.fecha).toLocaleString()}</small>
+      `;
+
+      contenedor.appendChild(div);
+    });
 
   } catch (error) {
-    console.error("Error correo:", error);
-    res.status(500).json({ error: "Error enviando correo" });
+    console.error("Error historial:", error);
   }
-});
+}
 
 // ===============================
-// 🟢 RUTA BASE
+// ESCALAR CASO (EMAIL)
 // ===============================
-app.get("/", (req, res) => {
-  res.send("🚀 FixIT AI funcionando correctamente");
-});
+async function escalarCaso() {
+  if (!window.ultimoResultado) {
+    alert("Primero analiza un problema");
+    return;
+  }
+
+  try {
+    const res = await fetch(API + "/escalar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + getToken()
+      },
+      body: JSON.stringify(window.ultimoResultado)
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Caso escalado correctamente 🚀");
+    } else {
+      alert("Error al escalar");
+    }
+
+  } catch (error) {
+    console.error("Error escalar:", error);
+    alert("Error enviando correo");
+  }
+}
 
 // ===============================
-// 🔥 INICIAR SERVIDOR
+// AUTO INIT (cuando carga app.html)
 // ===============================
-app.listen(PORT, () => {
-  console.log(`🔥 Servidor corriendo en puerto ${PORT}`);
+window.addEventListener("DOMContentLoaded", () => {
+  if (window.location.pathname.includes("app.html")) {
+    checkAuth();
+    cargarHistorial();
+  }
 });
